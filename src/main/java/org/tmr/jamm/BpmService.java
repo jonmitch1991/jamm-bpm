@@ -13,6 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 
 @Path("/jbpm")
@@ -26,7 +27,7 @@ public class BpmService {
     public Response ping() {
         ArrayList<String> processIdList = new ArrayList<String>();
         for(Process p : engine.getProcesses()) {
-            processIdList.add("Process Id: "+p.getId()+"| Process Name: "+p.getName());
+            processIdList.add("Process Id: "+p.getId()+" | Process Name: "+p.getName());
         }
         if (processIdList.isEmpty()) {
             processIdList.add("No Processes Loaded!");
@@ -35,9 +36,22 @@ public class BpmService {
     }
 
     @GET
-    @Path("/start/{processId}")
-    public Response start(@PathParam("processId") String processId) {
-        return Response.ok("Instance Id: "+engine.startProcess(processId)).build();
+    @Path("/start")
+    public Response start() {   	
+        return Response.ok("Instance Id: " + engine.startProcess("com.sample.process")).build();
+    }
+    
+    @GET
+    @Path("/submitcv/{instanceId}/{name}")
+    public Response submitCV(@PathParam("instanceId") String instanceId, @PathParam("name") String name) {
+    	if (name == null)
+    		name = "John";
+    	
+    	Map<String, Object> params = new HashMap<>();
+    	params.put("name", name);
+    	params.put("cv", "This is a CV for " + name);
+    	
+    	return Response.ok("Submitted CV: " + engine.submitCV(instanceId, params)).build(); 
     }
 
     @GET
@@ -52,7 +66,7 @@ public class BpmService {
     public Response list() {
         ArrayList<String> instanceIdList = new ArrayList<String>();
         for(ProcessInstance i : engine.getProcessInstances()) {
-            instanceIdList.add("Instance Id: "+i.getId()+"| Process Id: "+i.getProcessId()+"| State: "+Util.decodeProcessState(i.getState()));
+            instanceIdList.add("Instance Id: "+i.getId()+" | Process Id: "+i.getProcessId()+" | State: "+Util.decodeProcessState(i.getState()));
         }
         if (instanceIdList.isEmpty()) {
             instanceIdList.add("No Process Instances!");
